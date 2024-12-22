@@ -3,8 +3,10 @@ package dbjpa;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
+import domain.Pessoa;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Query;
@@ -42,6 +44,15 @@ public class App {
 				case 2:
 					listar();
 					break;
+				case 3:
+					buscarID();
+					break;
+				case 4:
+					alterar();
+					break;
+				case 5:
+					deletar();
+					break;
 				case 0:
 					System.out.println("\nFim do programa!");
 					break;
@@ -56,28 +67,6 @@ public class App {
 		
 		scan.close();
 		JpaUtil.close();
-		
-		/* EntityManager manager = JpaUtil.getEntityManager();
-		// cria uma nova transação
-		EntityTransaction tx = manager.getTransaction();
-		tx.begin();
-		// instanciamos um objeto de Pessoa
-		Pessoa p1 = new Pessoa();
-		p1.setNome("Maria Lucia");
-		p1.setSalario(new BigDecimal(5000));
-		
-		try {
-			// persistindo objeto no banco de dados
-			manager.persist(p1);
-			// efetiva a inserção 
-			tx.commit();
-			System.out.println("Sucesso!");
-		} catch (Exception e) {
-			System.out.println("Erro: " + e);
-		}
-		manager.close();
-		JpaUtil.close();*/
-		
 	}
 	
 	public static void cadastrar() {
@@ -138,6 +127,110 @@ public class App {
 			}
 		}
 	}
+	
+	public static void buscarID() {
+		EntityManager manager = JpaUtil.getEntityManager();
+		Scanner entrada = new Scanner(System.in);
+		
+		try {
+			Long id = 0L;
+			System.out.print("Digite o ID a ser buscado: ");
+			id = entrada.nextLong();
+			
+			Pessoa pessoa = manager.find(Pessoa.class, id);
+			if (pessoa == null) {
+				System.out.println("\nNenhuma pessoa encontrada com esse Id!");
+				return;
+			}
+			System.out.println();
+			System.out.println("ID: " + pessoa.getId());
+			System.out.println("Nome: " + pessoa.getNome());
+			System.out.println("Salário: R$ " + pessoa.getSalario());
+			
+		} catch (Exception e) {
+			System.out.println("Erro ao fazer busca: " + e.getMessage());
+		} finally {
+			manager.close();
+		}
+	}
+	
+	public static void alterar() {
+		EntityManager manager = JpaUtil.getEntityManager();
+		
+		Scanner entrada = new Scanner(System.in);
+		try {
+			System.out.print("\nDigite o ID da pessoa que deseja editar: ");
+			Long id = entrada.nextLong();
+			Pessoa pessoa = manager.find(Pessoa.class, id);
+			if (pessoa == null) {
+				System.out.println("\nNenhuma pessoa encontrada com esse Id!");
+				return;
+			}
+			System.out.println();
+			System.out.println("ID: " + pessoa.getId());
+			System.out.println("Nome: " + pessoa.getNome());
+			System.out.println("Salário: R$ " + pessoa.getSalario());
+			
+			entrada.nextLine();
+			System.out.print("\nNome: ");
+			String n = entrada.nextLine();
+			System.out.print("Salário: ");
+			Double s = 0.0;
+			if (entrada.hasNextDouble()) {
+				s = entrada.nextDouble();
+			} else {
+				System.out.println("\nErro: entrada inválida!");
+				entrada.next();
+				return;
+			}
+			
+			EntityTransaction tx = manager.getTransaction();
+			tx.begin();
+	
+			pessoa.setNome(n);
+			pessoa.setSalario(new BigDecimal(s));
+			
+			tx.commit();
+			
+			System.out.println(pessoa.getNome() + " alterado com sucesso!");
+			
+		} catch (Exception e) {
+			System.out.println("Erro ao tentar editar: " + e.getMessage());
+		} finally {
+			manager.close();
+		}
+	}
+	
+	
+	public static void deletar() {
+		EntityManager manager = JpaUtil.getEntityManager();
+		Scanner entrada = new Scanner(System.in);
+		
+		try {
+			System.out.print("Digite o ID da pessoa a ser excluída: ");
+			Long id = entrada.nextLong();
+			
+			Pessoa pessoa = manager.find(Pessoa.class, id);
+			if (pessoa == null) {
+				System.out.println("\nNenhuma pessoa encontrada com esse Id!");
+				return;
+			}
+			EntityTransaction tx = manager.getTransaction();
+			tx.begin();
+	
+			Optional<Pessoa> optionalPessoa = Optional.of(pessoa);
+			optionalPessoa.ifPresent(p -> manager.remove(p));
+			
+			tx.commit();
+			System.out.println(pessoa.getNome() + " excluído com sucesso!");
+			
+		} catch (Exception e) {
+			System.out.println("Erro ao tentar excluir: " + e.getMessage());
+		} finally {
+			manager.close();
+		}
+	}
+	
 
 }
 
