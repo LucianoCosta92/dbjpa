@@ -218,8 +218,7 @@ public class App {
 			EntityTransaction tx = manager.getTransaction();
 			tx.begin();
 	
-			Optional<Pessoa> optionalPessoa = Optional.of(pessoa);
-			optionalPessoa.ifPresent(p -> manager.remove(p));
+			manager.remove(pessoa);
 			
 			tx.commit();
 			System.out.println(pessoa.getNome() + " excluído com sucesso!");
